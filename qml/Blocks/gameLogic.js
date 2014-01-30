@@ -105,13 +105,33 @@ function isCrash(player, block, timer, out){
        (player.leftX <= block.rightX)&&(player.leftX >= block.leftX)    )
     {
         out.text = "Геймовер!!!МУХАХАХа"
-        for(var i = 0; i<blockTimers.length; i++)
-            blockTimers[i].stop();
-
+        return true;
     }
     else
     {
         out.text = "Все нормуль, братюнь"
+        return false;
     }
+}
 
+var cof = 0.9;
+var nextX = 5;
+
+function findStar(player, star, lay, starCount, out){
+
+    if((player.rightX >= star.rightX)&&(player.leftX <= star.leftX)||
+       (player.leftX <= star.rightX)&&(player.leftX >= star.leftX) ||
+       (player.rightX <= star.rightX)&&(player.rightX >= star.leftX) )
+    {
+
+        while(out.width < (starCount*(star.width*cof+5)))
+            cof *= 0.9;
+
+        star.width *= cof;
+        star.x = nextX;
+        nextX += star.width*cof+5;
+        star.y = lay/2+(lay/2 - star.height)/2;
+        return true;
+    }
+    return false;
 }

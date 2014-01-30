@@ -6,10 +6,21 @@ ApplicationWindow {
 //    width: 640
 //    height: 480
     id: main
-    property int level: 3
+    property int level: 2
     property int stage: 6
+    property int starCount: level*2
     property bool isGameOver: false
-
+    Image{
+        id: refresh
+        anchors.top: parent.top
+        anchors.right: parent.right
+        source: "image/refresh.png"
+        height: playingF.lay; width: height
+        MouseArea{
+            anchors.fill: parent
+            onClicked: scrText.text = "Есть касание!"
+        }
+    }
     Rectangle{
         id: scoreEl
         height: parent.height/(main.stage+3)
@@ -17,7 +28,7 @@ ApplicationWindow {
         border.color: "black"
         anchors.top: parent.top
         anchors.left: parent.left
-        anchors.right: parent.right
+        anchors.right: refresh.left
         Text{
             id: scrText
             anchors.fill: parent
@@ -25,6 +36,7 @@ ApplicationWindow {
         }
 
     }
+
 
 
     Item{
@@ -73,9 +85,15 @@ ApplicationWindow {
                         id:timer
                          interval: 5; running: true; repeat: true
                          onTriggered: {
-                            if(Math.abs(player.y-block.parent.y)<10)
-                                Log.isCrash(player, block, timer, scrText);
-                            Log.move(block, main.level, parent.width)
+                             if(main.isGameOver)
+                                 stop()
+                             else{
+                                 if(Math.abs(player.y-block.parent.y)<10)
+                                     main.isGameOver = Log.isCrash(player, block, timer, scrText);
+                                 Log.move(block, main.level, parent.width)
+                             }
+
+
                          }
                      }
                 Timer{
@@ -118,28 +136,44 @@ ApplicationWindow {
                    Log.setOldP(point);
                }
                onReleased:  Log.playerMoveY(player, point.sceneX, point.sceneY, playingF.lay, scrText)
-
-              // onReleased:  Log.playerMove(scrText, touchPoints, playingF.lay);
-//               onTouchUpdated: scrText.text=point.sceneX+";" + point.sceneY+"  " +point.x+";"+point.y;
-
            }
 
 
 
     }
     Timer{
-             interval: 1; running: true; repeat: false
+             interval: ; running: true; repeat: false
              onTriggered: Log.initial(playingF.width, playingF.height, blocks, stage)
 
     }
     Repeater{
-        model: level*2
+        model: main.starCount
         Star{
-
+            id: star
             width: playingF.lay/2
-            height: playingF.lay/2
+            height: width
             y: playingF.lay*Log.getRandomInt(2, stage+1)+(playingF.lay-height)/2
             x: Log.getRandomInt(0, playingF.width-width)
+
+            Behavior on width {
+                    NumberAnimation { duration: 700 }
+                }
+            Behavior on x {
+                    NumberAnimation { duration: 700 }
+                }
+            Behavior on y {
+                    NumberAnimation { duration: 700 }
+                }
+
+            Timer{
+                     interval: 5; running: true; repeat: true
+                     onTriggered: {
+                         if(Math.abs(player.y+playingF.lay-star.y)<playingF.lay/2)
+                             if(Log.findStar(player, star, playingF.lay, main.starCount,  scrText))
+                                 stop();
+                     }
+            }
+
         }
     }
 
