@@ -11,4 +11,5 @@ Rectangle {
     property int leftX: x
     property int rightX: x+width
     property bool direction: true
+    property bool fickle: false
 }

@@ -1,5 +1,6 @@
-var width, height;
+var width, height, level;
 var blocks = [];
+//var chgDir = [];
 var timers = [];
 var stars = [];
 var timersS= [];
@@ -9,13 +10,15 @@ var cof = 0.9;
 var nextX = 5;
 
 
+
 /********************************************
    Инициализация переменных ширины и высоты
 
  ********************************************/
-function initial(w, h){
+function initial(w, h, l){
     width=w;
     height=h;
+    level=l;
 }
 /********************************************
     Получение случайного целого числа
@@ -24,6 +27,16 @@ function initial(w, h){
 function getRandomInt(min, max)
 {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+/********************************************
+    Получение случайной булевой переменной
+ ********************************************/
+function getRandomBool()
+{
+    if(getRandomInt(1,10)>5)
+        return true;
+    else
+        return false;
 }
 
 /********************************************
@@ -48,9 +61,11 @@ function saveStars(star, timer, out){
 /********************************************
     Старт уровня
  ********************************************/
-function startLevel(level, stage, player, lay, out){
+function startLevel(nextL, stage, player, lay, out){
+    level = nextL;
     player.x = width/2 - player.width/2;
     player.y = 0;
+    player.source = "image/playerB.png"
     nextX = 0;
     for(var i=0; i<blocks.length; i++)
     {
@@ -64,13 +79,14 @@ function startLevel(level, stage, player, lay, out){
         stars[j].x = getRandomInt(0, width-stars[j].width);
         timersS[j].start();
     }
+    return nextL;
 
 }
 
 /********************************************
     Смена направления движения блоков
  ********************************************/
-function chageDir(block){
+function changeDir(block){
     if(block.direction)
         block.direction = false;
     else
@@ -82,9 +98,9 @@ function chageDir(block){
 
                             правыйКрайПоля)
  ********************************************/
-function move(block, level, right) {
-    if(((block.rightX) > right)||(block.leftX < 0))
-        chageDir(block);
+function move(block) {
+    if(((block.rightX) > width)||(block.leftX < 0))
+        changeDir(block);
 
     if(block.direction)
         block.x = block.x+block.speed*level;
@@ -114,19 +130,37 @@ function playerMoveX(player, sceneX, sceneY, lay, out){
 
    var dX = (sceneX - oldX);
    var dY = (sceneY - oldY);
-//   out.text = "dX,dY: "+ dX +","+ dY+"; sX,sY: " +startX +","+startY;
+
+   var oldDir = player.direction;
 
    if(Math.abs(dX) > Math.abs(dY))
    {
        var normX = dX/Math.abs(dX);
-       if(normX > 0)
-           player.source = "image/playerR.png"
-       else
+       if(normX > 0){
+           player.source = "image/playerR.png";
+           player.direction = true;
+       }
+       else{
            player.source = "image/playerL.png"
-       var step = 6*normX
+           player.direction = false;
+       }
+//       if(oldDir !== player.direction)
+//           for(var j=0; j<blocks.length; j++)
+//                chgDir[j] = true;
 
-       if(((player.leftX+step)> 0)&&((player.rightX+step/*+player.width*/)< width))
-            player.x += step;
+       var step = 7*normX
+       if(((player.leftX+step)> 0)&&((player.rightX+step)< width))
+       {
+           player.x += step;
+           for(var i=0; i<blocks.length; i++)
+           {
+               if((oldDir !== player.direction)&&(blocks[i].fickle)&&
+                  (player.y >= lay)&&(player.y <= (height-10)))
+                   changeDir(blocks[i]);
+
+               move(blocks[i]);
+           }
+       }
    }
 
 }
@@ -136,7 +170,6 @@ function playerMoveY(player, sceneX, sceneY, lay, out){
 
    var dX = (sceneX - startX);
    var dY = (sceneY - startY);
-//   out.text = "dX,dY: "+ dX +","+ dY+"; sX,sY: " +startX +","+startY;
 
    if(Math.abs(dX) < Math.abs(dY))
    {
@@ -147,6 +180,7 @@ function playerMoveY(player, sceneX, sceneY, lay, out){
                player.source = "image/playerB.png"
            else
                player.source = "image/playerT.png"
+
            if(((player.y+lay*normY)>= 0)&&((player.y+lay*normY)<= (height-10)))
                 player.y += lay*normY;
        }
