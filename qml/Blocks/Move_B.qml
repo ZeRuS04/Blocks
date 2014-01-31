@@ -1,15 +1,28 @@
 import QtQuick 2.1
 import QtQuick.Controls 1.0
 import "gameLogic.js" as Log
+
+
 ApplicationWindow {
     title: qsTr("Move you body")
 //    width: 640
 //    height: 480
     id: main
+
+    /********************************************
+        Основные переменные:
+     ********************************************/
     property int level: 2
     property int stage: 6
     property int starCount: level*2
     property bool isGameOver: false
+
+
+
+
+    /********************************************
+        Строка управления и счета:
+     ********************************************/
     Image{
         id: refresh
         anchors.top: parent.top
@@ -18,7 +31,10 @@ ApplicationWindow {
         height: playingF.lay; width: height
         MouseArea{
             anchors.fill: parent
-            onClicked: scrText.text = "Есть касание!"
+            onClicked: {
+                isGameOver =  false;
+                Log.startLevel(main.level, main.stage, player, playingF.lay, scrText);
+            }
         }
     }
     Rectangle{
@@ -36,9 +52,9 @@ ApplicationWindow {
         }
 
     }
-
-
-
+    /********************************************
+        Игровое поле:
+     ********************************************/
     Item{
         id: playingF
 
@@ -47,6 +63,10 @@ ApplicationWindow {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         property int lay: parent.height/(main.stage+3)
+
+        /********************************************
+            Старт:
+         ********************************************/
         Rectangle
         {
             id: start
@@ -57,6 +77,10 @@ ApplicationWindow {
             color: "#bdf7bc"
             border.color: "black"
         }
+
+        /********************************************
+            Создание игровых строк и блоков:
+         ********************************************/
         Repeater{
             id: blocks
             model: main.stage
@@ -74,37 +98,48 @@ ApplicationWindow {
 
                 Block{
                     id: block
-                    x: 0
+                    x: Log.getRandomInt(0, parent.width-width)
                     y: 5
-                    z: 1
                     width: parent.width/3*(1/((index)+1))
                     speed: index+1
 
-                }
-                Timer {
-                        id:timer
-                         interval: 5; running: true; repeat: true
-                         onTriggered: {
-                             if(main.isGameOver)
-                                 stop()
-                             else{
-                                 if(Math.abs(player.y-block.parent.y)<10)
-                                     main.isGameOver = Log.isCrash(player, block, timer, scrText);
-                                 Log.move(block, main.level, parent.width)
+
+                    /********************************************
+                        Таймер блоков:
+                            Прверяет на столкновений блоки и игрока
+                            Управляет движением блоков
+                     ********************************************/
+                    Timer {
+                            id:timer
+                             interval: 5; running: true; repeat: true
+                             onTriggered: {
+                                 if(main.isGameOver)
+                                     stop()
+                                 else{
+                                     if(Math.abs(player.y-block.parent.y)<10)
+                                         main.isGameOver = Log.isCrash(player, block, timer, scrText);
+                                     Log.move(block, main.level, block.parent.width)
+                                 }
                              }
-
-
                          }
-                     }
+                }
+
+                /********************************************
+                    Таймер сохранения:
+                        Сохраняет указатели на блоки
+                 ********************************************/
                 Timer{
                          interval: 1; running: true; repeat: false
-                         onTriggered: Log.saveTimer(timer, scrText)
+                         onTriggered: Log.saveBlocks(block, timer, scrText)
                 }
             }
 
 
         }
 
+        /********************************************
+            Финиш:
+         ********************************************/
         Rectangle{
             id: finish
             anchors.left: playingF.left
@@ -115,6 +150,10 @@ ApplicationWindow {
             border.color: "black"
         }
 
+
+        /********************************************
+            Игрок:
+         ********************************************/
         Player{
             id: player
             x: start.width/2 - width/2
@@ -123,7 +162,10 @@ ApplicationWindow {
             height: playingF.lay
         }
 
-
+        /********************************************
+            Мультитач арена:
+                Управление движением игрока
+         ********************************************/
         MultiPointTouchArea {
                anchors.fill: parent
                touchPoints: [
@@ -137,15 +179,24 @@ ApplicationWindow {
                }
                onReleased:  Log.playerMoveY(player, point.sceneX, point.sceneY, playingF.lay, scrText)
            }
-
-
-
     }
+
+    /********************************************
+        Таймер инициализации:
+            Инициализирует некоторые глоб. перем.
+     ********************************************/
     Timer{
-             interval: ; running: true; repeat: false
-             onTriggered: Log.initial(playingF.width, playingF.height, blocks, stage)
+             interval: 1; running: true; repeat: false
+             onTriggered: Log.initial(playingF.width, playingF.height)
 
     }
+
+    /********************************************
+        Звезды:
+            Распределение положения звезд
+            Проверка на столкновения
+            Анимация
+     ********************************************/
     Repeater{
         model: main.starCount
         Star{
@@ -165,16 +216,33 @@ ApplicationWindow {
                     NumberAnimation { duration: 700 }
                 }
 
+            /********************************************
+                Таймер звезд:
+                    Прверяет на столкновений звезды и
+                                                   игрока
+             ********************************************/
             Timer{
+                     id:timerS
                      interval: 5; running: true; repeat: true
                      onTriggered: {
-                         if(Math.abs(player.y+playingF.lay-star.y)<playingF.lay/2)
+                         if((Math.abs(player.y+playingF.lay-star.y) < playingF.lay/2)&&  //проверка на положение по Y игрока и звезды
+                                                               star.y > playingF.lay*2)       //проверка на то что звезда уже переместилась на игровое поле
                              if(Log.findStar(player, star, playingF.lay, main.starCount,  scrText))
                                  stop();
-                     }
+                 }
+            }
+            /********************************************
+                Таймер сохранения:
+                    Сохраняет указатели на звезды
+             ********************************************/
+            Timer{
+                     interval: 1; running: true; repeat: false
+                     onTriggered: Log.saveStars(star,timerS,
+                                                scrText)
             }
 
         }
+
     }
 
 }

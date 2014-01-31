@@ -1,24 +1,75 @@
 var width, height;
-function initial(w, h, rep, count){
+var blocks = [];
+var timers = [];
+var stars = [];
+var timersS= [];
+var startX, startY;
+var oldX, oldY
+var cof = 0.9;
+var nextX = 5;
+
+
+/********************************************
+   Инициализация переменных ширины и высоты
+
+ ********************************************/
+function initial(w, h){
     width=w;
     height=h;
 }
-
+/********************************************
+    Получение случайного целого числа
+ ********************************************/
 // использование Math.round() даст неравномерное распределение!
 function getRandomInt(min, max)
 {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+/********************************************
+    Сохранение указателей на блоки
+ ********************************************/
 
-
-var blockTimers = [];
-function saveTimer(timer, out){
-    blockTimers.push(timer)
+function saveBlocks(block, timer, out){
+    blocks.push(block);
+    timers.push(timer)
 }
 
+/********************************************
+    Сохранение указателей на звезды
+ ********************************************/
 
+function saveStars(star, timer, out){
+    stars.push(star);
+    timersS.push(timer);
 
+}
+
+/********************************************
+    Старт уровня
+ ********************************************/
+function startLevel(level, stage, player, lay, out){
+    player.x = width/2 - player.width/2;
+    player.y = 0;
+    nextX = 0;
+    for(var i=0; i<blocks.length; i++)
+    {
+        blocks[i].x = getRandomInt(0, width-blocks[i].width);
+        timers[i].start();
+    }
+    for(var j=0; j<stars.length; j++)
+    {
+        stars[j].width = lay/2
+        stars[j].y = lay*getRandomInt(2, stage+1)+(lay-stars[j].height)/2
+        stars[j].x = getRandomInt(0, width-stars[j].width);
+        timersS[j].start();
+    }
+
+}
+
+/********************************************
+    Смена направления движения блоков
+ ********************************************/
 function chageDir(block){
     if(block.direction)
         block.direction = false;
@@ -26,6 +77,11 @@ function chageDir(block){
         block.direction = true;
 }
 
+/********************************************
+    Перемещение блока(блок*, уровеньИгры,
+
+                            правыйКрайПоля)
+ ********************************************/
 function move(block, level, right) {
     if(((block.rightX) > right)||(block.leftX < 0))
         chageDir(block);
@@ -37,8 +93,6 @@ function move(block, level, right) {
 
 }
 
-var startX, startY;
-var oldX, oldY
 
 function setStartP(point){
     startX = point.sceneX;
@@ -114,8 +168,7 @@ function isCrash(player, block, timer, out){
     }
 }
 
-var cof = 0.9;
-var nextX = 5;
+
 
 function findStar(player, star, lay, starCount, out){
 
