@@ -21,6 +21,8 @@ ApplicationWindow {
                 id: newGame
                 text: qsTr("New Game")
                 onClicked: {
+                    mainG.isGameOver = false;
+                    mainG.collectStar = 0;
                     mainG.level = Log.startLevel(1,mainG.stage,player, playingF.lay, scrText);
                     mainG.visible = true; mainMenu.visible = false;
                 }
@@ -47,9 +49,10 @@ ApplicationWindow {
         /********************************************
             Основные переменные:
          ********************************************/
-        property int level: 2
-        property int stage: 3
+        property int level: 1
+        property int stage: 4
         property int starCount: level*2
+        property int collectStar: 0
         property bool isGameOver: true
 
 
@@ -68,6 +71,7 @@ ApplicationWindow {
                 anchors.fill: parent
                 onClicked: {
                     mainG.isGameOver = false;
+                    mainG.collectStar = 0;
                     mainG.level = Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, scrText);
                 }
             }
@@ -102,15 +106,27 @@ ApplicationWindow {
             /********************************************
                 Старт:
              ********************************************/
-            Rectangle
-            {
+            Rectangle{
                 id: start
                 anchors.left: playingF.left
                 anchors.right: playingF.right
                 anchors.top: playingF.top
+
                 height: parent.lay
                 color: "#bdf7bc"
                 border.color: "black"
+                Text{
+                    anchors.centerIn: parent
+                    anchors.fill: parent
+//                    anchors.verticalCenter: parent.verticalCenter
+//                    anchors.horizontalCenter: parent.horizontalCenter
+//                    width: parent.width
+//                    anchors.alignWhenCentered: parent.Center
+//                    height: parent.height
+                    font.pixelSize: parent.height
+                    text: "<b>START</b>"
+                    opacity: 0.1
+                }
             }
 
             /********************************************
@@ -197,6 +213,21 @@ ApplicationWindow {
                 y: 0
                 width: playingF.lay
                 height: playingF.lay
+                /********************************************
+                    Таймер игрока:
+                        Проверяет не пришел ли игрок на финиш
+                 ********************************************/
+                Timer{
+                         interval: 50; running: true; repeat: true
+                         onTriggered:{
+                             if((player.y >= finish.y-playingF.lay)&&(mainG.collectStar === mainG.starCount)){
+                                 mainG.collectStar = 0;
+                                 mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay, scrText);
+                             }
+
+                         }
+
+                }
             }
 
             /********************************************
@@ -271,8 +302,10 @@ ApplicationWindow {
                          onTriggered: {
                              if((Math.abs(player.y+playingF.lay-star.y) < playingF.lay/2)&&  //проверка на положение по Y игрока и звезды
                                                                    star.y > playingF.lay*2)       //проверка на то что звезда уже переместилась на игровое поле
-                                 if(Log.findStar(player, star, playingF.lay, mainG.starCount,  scrText))
+                                 if(Log.findStar(player, star, playingF.lay, mainG.starCount,  scrText)){
+                                     mainG.collectStar++;
                                      stop();
+                                 }
                      }
                 }
                 /********************************************
@@ -281,8 +314,7 @@ ApplicationWindow {
                  ********************************************/
                 Timer{
                          interval: 1; running: true; repeat: false
-                         onTriggered: Log.saveStars(star,timerS,
-                                                    scrText)
+                         onTriggered: Log.saveStars(star,timerS, index, scrText)
                 }
 
             }

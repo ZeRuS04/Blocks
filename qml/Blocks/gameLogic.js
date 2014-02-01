@@ -52,9 +52,9 @@ function saveBlocks(block, timer, out){
     Сохранение указателей на звезды
  ********************************************/
 
-function saveStars(star, timer, out){
-    stars.push(star);
-    timersS.push(timer);
+function saveStars(star, timer, index, out){
+    stars[index] = star;
+    timersS[index] = timer;
 
 }
 
@@ -62,16 +62,19 @@ function saveStars(star, timer, out){
     Старт уровня
  ********************************************/
 function startLevel(nextL, stage, player, lay, out){
+
     level = nextL;
     player.x = width/2 - player.width/2;
     player.y = 0;
     player.source = "image/playerB.png"
     nextX = 0;
+
     for(var i=0; i<blocks.length; i++)
     {
         blocks[i].x = getRandomInt(0, width-blocks[i].width);
         timers[i].start();
     }
+
     for(var j=0; j<stars.length; j++)
     {
         stars[j].width = lay/2
@@ -79,6 +82,7 @@ function startLevel(nextL, stage, player, lay, out){
         stars[j].x = getRandomInt(0, width-stars[j].width);
         timersS[j].start();
     }
+
     return nextL;
 
 }
