@@ -7,7 +7,6 @@ var timersS= [];
 var startX, startY;
 var oldX, oldY
 var cof = 0.9;
-var nextX = 5;
 
 
 
@@ -67,7 +66,6 @@ function startLevel(nextL, stage, player, lay){
     player.x = width/2 - player.width/2;
     player.y = 0;
     player.source = "image/playerB.png"
-    nextX = 0;
 
     for(var i=0; i<blocks.length; i++)
     {
@@ -102,9 +100,10 @@ function changeDir(block){
 
                             правыйКрайПоля)
  ********************************************/
-function move(block) {
+function move(block, dirChanged) {
     if(((block.rightX) > width)||(block.leftX < 0))
-        changeDir(block);
+        if(!dirChanged)
+            changeDir(block);
 
     if(block.direction)
         block.x = block.x+block.speed*level;
@@ -158,11 +157,14 @@ function playerMoveX(player, sceneX, sceneY, lay){
            player.x += step;
            for(var i=0; i<blocks.length; i++)
            {
+               var dirChanged = false;
                if((oldDir !== player.direction)&&(blocks[i].fickle)&&
-                  (player.y >= lay)&&(player.y <= (height-10)))
+                  (player.y >= lay)&&(player.y <= (height-10))){
                    changeDir(blocks[i]);
-
-               move(blocks[i]);
+                   dirChanged = true;
+               }
+               if((player.y >= lay)&&(player.y <= (height-10)))
+                   move(blocks[i], dirChanged);
            }
        }
    }
@@ -185,15 +187,31 @@ function playerMoveY(player, sceneX, sceneY, lay){
            else
                player.source = "image/playerT.png"
 
-           if(((player.y+lay*normY)>= 0)&&((player.y+lay*normY)<= (height-10)))
+           if((((player.y+lay*normY)>= 0)&&((player.y+lay*normY)<= (height-10)))&&!isCrashed(player, lay, normY))
                 player.y += lay*normY;
+
        }
    }
 
 }
+function isCrashed(player, lay, normY)
+{
+    for(var i=0; i<blocks.length; i++)
+    {
+        if(Math.abs(player.y+lay*normY-blocks[i].parent.y)<10)
+        {
+            if((player.rightX >= blocks[i].rightX)&&(player.leftX <= blocks[i].leftX)||
+               (player.rightX >= blocks[i].leftX)&&(player.rightX <= blocks[i].rightX)||
+               (player.leftX <= blocks[i].rightX)&&(player.leftX >= blocks[i].leftX)    )
+                    return true;
+        }
+    }
+    return false;
+}
 
 function isCrash(player, block, timer, dialog){
-    if((player.rightX >= block.leftX)&&(player.rightX <= block.rightX)||
+    if((player.rightX >= block.rightX)&&(player.leftX <= block.leftX)||
+       (player.rightX >= block.leftX)&&(player.rightX <= block.rightX)||
        (player.leftX <= block.rightX)&&(player.leftX >= block.leftX)    )
     {
         dialog.open();
@@ -211,7 +229,7 @@ function findStar(player, star, lay){
        (player.leftX <= star.rightX)&&(player.leftX >= star.leftX) ||
        (player.rightX <= star.rightX)&&(player.rightX >= star.leftX) )
     {
-        star.x = lay+5;
+        star.x = lay/3+20;
         star.y = lay/2+(lay/2 - star.height)/2;
         return true;
     }

@@ -28,7 +28,7 @@ ApplicationWindow {
                 }
             }
             Button{
-                id: count
+                id: cont
                 text: qsTr("Continue")
                 onClicked: {
                     mainG.visible = true; mainMenu.visible = false;
@@ -92,16 +92,16 @@ ApplicationWindow {
                 anchors.left: parent.left
                 anchors.bottom: parent.bottom
                 text: "<b>"+mainG.collectStar+":</b>"
-                font.pixelSize: playingF.lay/2
+                font.pixelSize: playingF.lay/3
             }
 
             Text{
-                id: level
+                id: lev
                 width: height
                 height: playingF.lay/2
                 anchors.left: parent.left
                 anchors.top: parent.top
-                font.pixelSize: playingF.lay/2
+                font.pixelSize: playingF.lay/3
                 text: "<b>Level: "+mainG.level+"</b>"
             }
 
@@ -113,11 +113,15 @@ ApplicationWindow {
          ********************************************/
         MessageDialog {
             id: dialog
-            title: "Game over"
-            text: "Sorry, but you lose. Please restart level."
+//            visible: false
+            title: "Game Over"
+            text: "Sorry, but you lose. Level will be restarted."
             onAccepted: {
+                mainG.isGameOver = false;
+                mainG.collectStar = 0;
+                mainG.level = Log.startLevel(mainG.level, mainG.stage, player, playingF.lay);
             }
-            Component.onCompleted: visible = true
+//            Component.onCompleted: visible = true
         }
         /********************************************
             Игровое поле:
@@ -199,7 +203,7 @@ ApplicationWindow {
                                          if(Math.abs(player.y-block.parent.y)<10)
                                              mainG.isGameOver = Log.isCrash(player, block, timer, dialog);
                                          if(player.y < playingF.lay)
-                                            Log.move(block)
+                                            Log.move(block, 0)
                                      }
                                  }
                              }
