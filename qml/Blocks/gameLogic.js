@@ -61,7 +61,7 @@ function saveStars(star, timer, index, out){
 /********************************************
     Старт уровня
  ********************************************/
-function startLevel(nextL, stage, player, lay, out){
+function startLevel(nextL, stage, player, lay){
 
     level = nextL;
     player.x = width/2 - player.width/2;
@@ -129,7 +129,7 @@ function setOldP(point)
 }
 
 
-function playerMoveX(player, sceneX, sceneY, lay, out){
+function playerMoveX(player, sceneX, sceneY, lay){
 
 
    var dX = (sceneX - oldX);
@@ -169,7 +169,7 @@ function playerMoveX(player, sceneX, sceneY, lay, out){
 
 }
 
-function playerMoveY(player, sceneX, sceneY, lay, out){
+function playerMoveY(player, sceneX, sceneY, lay){
 
 
    var dX = (sceneX - startX);
@@ -192,35 +192,26 @@ function playerMoveY(player, sceneX, sceneY, lay, out){
 
 }
 
-function isCrash(player, block, timer, out){
+function isCrash(player, block, timer, dialog){
     if((player.rightX >= block.leftX)&&(player.rightX <= block.rightX)||
        (player.leftX <= block.rightX)&&(player.leftX >= block.leftX)    )
     {
-        out.text = "Геймовер!!!МУХАХАХа"
+        dialog.open();
         return true;
     }
     else
-    {
-        out.text = "Все нормуль, братюнь"
         return false;
-    }
 }
 
 
 
-function findStar(player, star, lay, starCount, out){
+function findStar(player, star, lay){
 
     if((player.rightX >= star.rightX)&&(player.leftX <= star.leftX)||
        (player.leftX <= star.rightX)&&(player.leftX >= star.leftX) ||
        (player.rightX <= star.rightX)&&(player.rightX >= star.leftX) )
     {
-
-        while(out.width < (starCount*(star.width*cof+5)))
-            cof *= 0.9;
-
-        star.width *= cof;
-        star.x = nextX;
-        nextX += star.width*cof+5;
+        star.x = lay+5;
         star.y = lay/2+(lay/2 - star.height)/2;
         return true;
     }

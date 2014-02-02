@@ -1,7 +1,7 @@
 import QtQuick 2.1
 import QtQuick.Controls 1.0
+import QtQuick.Dialogs 1.1
 import "gameLogic.js" as Log
-
 
 ApplicationWindow {
     title: qsTr("Move you body")
@@ -23,17 +23,18 @@ ApplicationWindow {
                 onClicked: {
                     mainG.isGameOver = false;
                     mainG.collectStar = 0;
-                    mainG.level = Log.startLevel(1,mainG.stage,player, playingF.lay, scrText);
+                    mainG.level = Log.startLevel(1,mainG.stage,player, playingF.lay);
                     mainG.visible = true; mainMenu.visible = false;
                 }
             }
             Button{
-                id: cont
+                id: count
                 text: qsTr("Continue")
                 onClicked: {
                     mainG.visible = true; mainMenu.visible = false;
                 }
             }
+
             Button{
                 id: exit
                 text: qsTr("Exit")
@@ -53,7 +54,7 @@ ApplicationWindow {
         property int stage: 4
         property int starCount: level*2
         property int collectStar: 0
-        property bool isGameOver: true
+        property bool isGameOver: false
 
 
 
@@ -72,7 +73,7 @@ ApplicationWindow {
                 onClicked: {
                     mainG.isGameOver = false;
                     mainG.collectStar = 0;
-                    mainG.level = Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, scrText);
+                    mainG.level = Log.startLevel(mainG.level, mainG.stage, player, playingF.lay);
                 }
             }
         }
@@ -85,11 +86,38 @@ ApplicationWindow {
             anchors.left: parent.left
             anchors.right: refresh.left
             Text{
-                id: scrText
-                anchors.fill: parent
-                text: "no touches"
+                id: starC
+                width: height
+                height: playingF.lay/2
+                anchors.left: parent.left
+                anchors.bottom: parent.bottom
+                text: "<b>"+mainG.collectStar+":</b>"
+                font.pixelSize: playingF.lay/2
             }
 
+            Text{
+                id: level
+                width: height
+                height: playingF.lay/2
+                anchors.left: parent.left
+                anchors.top: parent.top
+                font.pixelSize: playingF.lay/2
+                text: "<b>Level: "+mainG.level+"</b>"
+            }
+
+        }
+
+
+        /********************************************
+            Диалоговое окно:
+         ********************************************/
+        MessageDialog {
+            id: dialog
+            title: "Game over"
+            text: "Sorry, but you lose. Please restart level."
+            onAccepted: {
+            }
+            Component.onCompleted: visible = true
         }
         /********************************************
             Игровое поле:
@@ -169,7 +197,7 @@ ApplicationWindow {
                                          stop()
                                      else{
                                          if(Math.abs(player.y-block.parent.y)<10)
-                                             mainG.isGameOver = Log.isCrash(player, block, timer, scrText);
+                                             mainG.isGameOver = Log.isCrash(player, block, timer, dialog);
                                          if(player.y < playingF.lay)
                                             Log.move(block)
                                      }
@@ -183,7 +211,7 @@ ApplicationWindow {
                      ********************************************/
                     Timer{
                              interval: 1; running: true; repeat: false
-                             onTriggered: Log.saveBlocks(block, timer, scrText)
+                             onTriggered: Log.saveBlocks(block, timer)
                     }
                 }
 
@@ -222,7 +250,7 @@ ApplicationWindow {
                          onTriggered:{
                              if((player.y >= finish.y-playingF.lay)&&(mainG.collectStar === mainG.starCount)){
                                  mainG.collectStar = 0;
-                                 mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay, scrText);
+                                 mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay);
                              }
 
                          }
@@ -245,13 +273,13 @@ ApplicationWindow {
                    }
                    onTouchUpdated:{
                        if(!mainG.isGameOver){
-                           Log.playerMoveX(player, point.sceneX, point.sceneY, playingF.lay,scrText)
+                           Log.playerMoveX(player, point.sceneX, point.sceneY, playingF.lay)
                            Log.setOldP(point);
                        }
                    }
                    onReleased:{
                        if(!mainG.isGameOver)
-                        Log.playerMoveY(player, point.sceneX, point.sceneY, playingF.lay, scrText)
+                        Log.playerMoveY(player, point.sceneX, point.sceneY, playingF.lay)
                    }
                }
         }
@@ -302,7 +330,7 @@ ApplicationWindow {
                          onTriggered: {
                              if((Math.abs(player.y+playingF.lay-star.y) < playingF.lay/2)&&  //проверка на положение по Y игрока и звезды
                                                                    star.y > playingF.lay*2)       //проверка на то что звезда уже переместилась на игровое поле
-                                 if(Log.findStar(player, star, playingF.lay, mainG.starCount,  scrText)){
+                                 if(Log.findStar(player, star, playingF.lay)){
                                      mainG.collectStar++;
                                      stop();
                                  }
@@ -314,7 +342,7 @@ ApplicationWindow {
                  ********************************************/
                 Timer{
                          interval: 1; running: true; repeat: false
-                         onTriggered: Log.saveStars(star,timerS, index, scrText)
+                         onTriggered: Log.saveStars(star,timerS, index)
                 }
 
             }
