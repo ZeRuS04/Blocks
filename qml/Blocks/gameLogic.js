@@ -1,5 +1,12 @@
+/********************************************
+    Основные переменные:
+ ********************************************/
 var db;
-var width, height, level;
+var width, height, lay;
+var level = 0, stage = 4, collectStar = 0, isGameOver = false,starCount;
+var visMenu = false, visGame = false, visProf = true;
+
+var profCount = 0, profName = "", profLevel = 1;
 var blocks = [];
 //var chgDir = [];
 var timers = [];
@@ -15,10 +22,12 @@ var cof = 0.9;
    Инициализация переменных ширины и высоты
 
  ********************************************/
-function initial(w, h, l){
+function initial(w, h, l, layer){
     width=w;
     height=h;
     level=l;
+    lay=layer;
+    starCount = level*2; // Изменить!!!!
 }
 /********************************************
     Получение случайного целого числа
@@ -61,7 +70,7 @@ function saveStars(star, timer, index, out){
 /********************************************
     Старт уровня
  ********************************************/
-function startLevel(nextL, stage, player, lay){
+function startLevel(nextL, player){
 
     level = nextL;
     player.x = width/2 - player.width/2;
@@ -81,8 +90,6 @@ function startLevel(nextL, stage, player, lay){
         stars[j].x = getRandomInt(0, width-stars[j].width);
         timersS[j].start();
     }
-
-    return nextL;
 
 }
 
@@ -122,14 +129,13 @@ function setStartP(point){
 }
 
 
-function setOldP(point)
-{
+function setOldP(point){
     oldX = point.sceneX;
     oldY = point.sceneY;
 }
 
 
-function playerMoveX(player, sceneX, sceneY, lay){
+function playerMoveX(player, sceneX, sceneY){
 
 
    var dX = (sceneX - oldX);
@@ -172,7 +178,7 @@ function playerMoveX(player, sceneX, sceneY, lay){
 
 }
 
-function playerMoveY(player, sceneX, sceneY, lay){
+function playerMoveY(player, sceneX, sceneY){
 
 
    var dX = (sceneX - startX);
@@ -195,8 +201,8 @@ function playerMoveY(player, sceneX, sceneY, lay){
    }
 
 }
-function isCrashed(player, lay, normY)
-{
+
+function isCrashed(player, normY){
     for(var i=0; i<blocks.length; i++)
     {
         if(Math.abs(player.y+lay*normY-blocks[i].parent.y)<10)
@@ -224,7 +230,7 @@ function isCrash(player, block, timer, dialog){
 
 
 
-function findStar(player, star, lay){
+function findStar(player, star){
 
     if((player.rightX >= star.rightX)&&(player.leftX <= star.leftX)||
        (player.leftX <= star.rightX)&&(player.leftX >= star.leftX) ||

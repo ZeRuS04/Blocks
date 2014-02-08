@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
 
     QtQuick2ControlsApplicationViewer viewer;
 
-    viewer.setMainQmlFile(QStringLiteral("qml/Blocks/Move_B.qml"));
+    viewer.setMainQmlFile(QStringLiteral("qml/Blocks/Main.qml"));
 
     viewer.show();
 

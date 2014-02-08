@@ -17,4 +17,6 @@ include(qtquick2controlsapplicationviewer/qtquick2controlsapplicationviewer.pri)
 qtcAddDeployment()
 
 OTHER_FILES += \
-    README.txt
+    README.txt \
+    qml/Blocks/Main.qml \
+    qml/Blocks/MenuGame.qml
