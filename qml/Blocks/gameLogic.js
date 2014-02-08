@@ -1,3 +1,4 @@
+var db;
 var width, height, level;
 var blocks = [];
 //var chgDir = [];
@@ -5,7 +6,7 @@ var timers = [];
 var stars = [];
 var timersS= [];
 var startX, startY;
-var oldX, oldY
+var oldX, oldY;
 var cof = 0.9;
 
 

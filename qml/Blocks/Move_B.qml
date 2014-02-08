@@ -1,19 +1,216 @@
 import QtQuick 2.1
 import QtQuick.Controls 1.0
 import QtQuick.Dialogs 1.1
+import QtQuick.LocalStorage 2.0
 import "gameLogic.js" as Log
 
 ApplicationWindow {
     title: qsTr("Move you body")
     id: main
     contentOrientation: "PortraitOrientation"
-//    width: 640
-//    height: 480
+    width: 540
+    height: 700
+    property int profCount: 0
+    property string profName: ""
+    property int profLevel: mainG.level
+    function openDB() {
+        Log.db = LocalStorage.openDatabaseSync("db_prof", "1.0", "Profiles", 1000000);
+
+        Log.db.transaction(
+            function(tx) {
+                // Create the database if it doesn't already exist
+                tx.executeSql('CREATE TABLE IF NOT EXISTS Profiles(name TEXT, level int)');
+
+                // Add (another) greeting row
+//                tx.executeSql('INSERT INTO Profiles VALUES(?, ?)', [ 'hello', 1 ]);
+                var rs = tx.executeSql('SELECT COUNT(*) as count FROM Profiles');
+                profCount = rs.rows.item(0).count
+                // Show all added greetings
+//                var rs = tx.executeSql('SELECT * FROM Greeting');
+
+//                var r = ""
+//                for(var i = 0; i < rs.rows.length; i++) {
+//                    r += rs.rows.item(i).salutation + ", " + rs.rows.item(i).salutee + "\n"
+//                }
+//                text = r
+            }
+        )
+    }
+
+    Component.onCompleted: openDB()
+    Rectangle{
+        id:profWindow
+        anchors.fill: parent
+        color: "black"
+        visible: true
+        Flickable{
+            anchors.fill:parent
+            contentWidth: width; contentHeight: (playingF.lay/2)*(main.profCount+1)
+            Repeater{
+                id: profList
+                model: main.profCount
+                Rectangle{
+                    width: profWindow.width/2
+                    height:playingF.lay/2
+                    color: "white"
+                    border.width: 1
+                    border.color: "black"
+                    x: (profWindow.width-width)/2
+                    y: height*index
+                    Text{
+                        id: prName
+                        color: "Black"
+                        anchors.centerIn: parent
+                        font.pixelSize: parent.height/1.5
+                        function getProf(db) {
+                            db.transaction(
+                                function(tx) {
+                                    var rs = tx.executeSql('SELECT * FROM Profiles');
+                                    text = rs.rows.item(index).name
+                                }
+                            )
+                        }
+                        Component.onCompleted: getProf(Log.db)
+                    }
+                    MouseArea{
+                        anchors.fill: parent
+                        function getProfLevel(name) {
+                            Log.db.transaction(
+                                function(tx) {
+
+                                    var rs = tx.executeSql('SELECT * FROM Profiles WHERE name = ?', [name.text]);
+                                    mainG.level = rs.rows.item(0).level
+                                    main.profName = rs.rows.item(0).name
+                                }
+                            )
+                        }
+                        onPressed: parent.color = "lightgrey"
+                        onReleased: {
+                            parent.color = "white"
+                            getProfLevel(prName)
+                            profWindow.visible = false;
+                            mainMenu.visible = true;
+                        }
+                    }
+                    Rectangle{
+                        width: parent.height/1.5
+                        height: width
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        color: "red"
+                        MouseArea{
+                            anchors.fill: parent
+                            function delProf(name) {
+                                Log.db.transaction(
+                                    function(tx) {
+                                        var rs = tx.executeSql('SELECT COUNT(*) AS count FROM Profiles WHERE name = ?', [name.text]);
+                                        var count = rs.rows.item(0).count;
+
+                                        rs = tx.executeSql('DELETE FROM Profiles WHERE name = ?', [name.text]);
+                                        profCount -= count;
+                                    }
+                                )
+                            }
+                            onPressed: parent.color = "lightgrey"
+                            onReleased: {
+                                parent.color = "red"
+                                delProf(prName)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Rectangle{
+                id: newBtProf
+                width: profWindow.width/2
+                height: playingF.lay/2
+                color: "lightblue"
+                border.width: 1
+                border.color: "black"
+                x: (profWindow.width-width)/2
+                y: height*main.profCount
+                Text{
+                    id: newTxtProf
+                    color: "Black"
+                    anchors.centerIn: parent
+                    font.pixelSize: parent.height/1.5
+                    text: "New profile"
+                }
+                MouseArea{
+                    anchors.fill: parent
+                    onPressed: parent.color = "lightgrey"
+                    onReleased: {
+                        parent.color = "white"
+    //                    profWindow.visible = false;
+                        createNewProf.visible = true;
+                    }
+                }
+            }
+        }
+        Rectangle{
+            id: createNewProf
+            anchors.fill: parent
+            color: "white"
+            visible: false
+
+            Text{
+                anchors.bottom: inputProfName.top
+                anchors.horizontalCenter: parent.horizontalCenter
+                width:inputProfName.width
+                color: "Black"
+                font.pixelSize: playingF.lay/3
+                text: "Please, input you name:"
+            }
+            TextField{
+                id: inputProfName
+                anchors.centerIn: parent
+                width: parent.width/1.5
+                height: playingF.lay/2
+                font.pixelSize: playingF.lay/3
+            }
+            Rectangle{
+                id: crBt
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: playingF.lay/2
+                color: "black"
+                Text{
+                    id: crTxt
+                    color: "white"
+                    anchors.centerIn: parent
+                    font.pixelSize: parent.height/1.5
+                    text: "Create"
+                }
+                MouseArea{
+                    function createProf (name, level) {
+                        Log.db.transaction(
+                            function(tx) {
+                                tx.executeSql('INSERT INTO Profiles VALUES(?, ?)', [ name, level ]);
+                                mainG.level = level
+                                main.profName = inputProfName.text
+                            }
+                        )
+                    }
+                    anchors.fill: parent
+                    onPressed: parent.color = "lightgrey"
+                    onReleased: {
+                        parent.color = "black"
+                        createProf(inputProfName.text, 1);
+                        createNewProf.visible = false
+                        profWindow.visible = false;
+                        mainMenu.visible = true;
+                    }
+                }
+            }
+        }
+
+    }
     Rectangle{
         id: mainMenu
         anchors.fill: parent
         color: "black"
-        visible: true
+        visible: false
         Column{
             anchors.centerIn: parent
             spacing: parent.height/50
@@ -34,7 +231,16 @@ ApplicationWindow {
                     mainG.visible = true; mainMenu.visible = false;
                 }
             }
+            Button{
+                id: changeProfiles
+                text: qsTr("Change profile")
+                onClicked: {
+                    profWindow.visible= true
 
+//                    mainG.visible = true;
+                    mainMenu.visible = false;
+                }
+            }
             Button{
                 id: exit
                 text: qsTr("Exit")
@@ -250,11 +456,19 @@ ApplicationWindow {
                         Проверяет не пришел ли игрок на финиш
                  ********************************************/
                 Timer{
+                        function saveLevel (name, level) {
+                            Log.db.transaction(
+                                function(tx) {
+                                    tx.executeSql('UPDATE Profiles SET level = ? WHERE name = ?', [level, name]);
+                                }
+                            )
+                        }
                          interval: 50; running: true; repeat: true
                          onTriggered:{
                              if((player.y >= finish.y-playingF.lay)&&(mainG.collectStar === mainG.starCount)){
                                  mainG.collectStar = 0;
                                  mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay);
+                                 saveLevel(main.profName, mainG.level);
                              }
 
                          }
