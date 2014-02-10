@@ -12,27 +12,26 @@ ApplicationWindow {
     height: 700
     property int profCount: 0
     property string profName: ""
-    property int profLevel: mainG.level
+    property int profLevel: 1
+
+    property color bgnColorFirst: "black"
+    property color bgnColorSecond: "white"
+
+    property color blockColor: bgnColorSecond
+    property color fontColorFirst: bgnColorSecond
+    property color fontColorSecond: bgnColorFirst
+
+    color: bgnColorFirst
+
     function openDB() {
         Log.db = LocalStorage.openDatabaseSync("db_prof", "1.0", "Profiles", 1000000);
 
         Log.db.transaction(
             function(tx) {
-                // Create the database if it doesn't already exist
                 tx.executeSql('CREATE TABLE IF NOT EXISTS Profiles(name TEXT, level int)');
-
-                // Add (another) greeting row
-//                tx.executeSql('INSERT INTO Profiles VALUES(?, ?)', [ 'hello', 1 ]);
                 var rs = tx.executeSql('SELECT COUNT(*) as count FROM Profiles');
                 profCount = rs.rows.item(0).count
-                // Show all added greetings
-//                var rs = tx.executeSql('SELECT * FROM Greeting');
 
-//                var r = ""
-//                for(var i = 0; i < rs.rows.length; i++) {
-//                    r += rs.rows.item(i).salutation + ", " + rs.rows.item(i).salutee + "\n"
-//                }
-//                text = r
             }
         )
     }
@@ -41,7 +40,7 @@ ApplicationWindow {
     Rectangle{
         id:profWindow
         anchors.fill: parent
-        color: "black"
+        color: main.bgnColorSecond
         visible: true
         Flickable{
             anchors.fill:parent
@@ -52,14 +51,14 @@ ApplicationWindow {
                 Rectangle{
                     width: profWindow.width/2
                     height:playingF.lay/2
-                    color: "white"
+                    color: main.bgnColorFirst
                     border.width: 1
                     border.color: "black"
                     x: (profWindow.width-width)/2
                     y: height*index
                     Text{
                         id: prName
-                        color: "Black"
+                        color: main.fontColorFirst
                         anchors.centerIn: parent
                         font.pixelSize: parent.height/1.5
                         function getProf(db) {
@@ -77,19 +76,26 @@ ApplicationWindow {
                         function getProfLevel(name) {
                             Log.db.transaction(
                                 function(tx) {
-
                                     var rs = tx.executeSql('SELECT * FROM Profiles WHERE name = ?', [name.text]);
-                                    mainG.level = rs.rows.item(0).level
+
+                                    main.profLevel = rs.rows.item(0).level
+                                    mainG.level = main.profLevel
+                                    Log.level = mainG.level
                                     main.profName = rs.rows.item(0).name
                                 }
                             )
                         }
-                        onPressed: parent.color = "lightgrey"
+//                        onPressed: parent.color = "lightgrey"
                         onReleased: {
-                            parent.color = "white"
+//                            parent.color = "white"
+                            cont.visible = false;
                             getProfLevel(prName)
                             profWindow.visible = false;
+                            profWindow.focus = true;
                             mainMenu.visible = true;
+                            mainMenu.focus = true;
+                            mainG.isGameOver = false;
+                            mainG.collectStar = 0;
                         }
                     }
                     Rectangle{
@@ -151,15 +157,15 @@ ApplicationWindow {
         Rectangle{
             id: createNewProf
             anchors.fill: parent
-            color: "white"
+            color: main.bgnColorFirst
             visible: false
 
             Text{
                 anchors.bottom: inputProfName.top
                 anchors.horizontalCenter: parent.horizontalCenter
                 width:inputProfName.width
-                color: "Black"
-                font.pixelSize: playingF.lay/3
+                color: main.fontColorFirst
+                font.pixelSize: playingF.lay/5
                 text: "Please, input you name:"
             }
             TextField{
@@ -188,65 +194,175 @@ ApplicationWindow {
                             function(tx) {
                                 tx.executeSql('INSERT INTO Profiles VALUES(?, ?)', [ name, level ]);
                                 mainG.level = level
+                                Log.level = mainG.level
                                 main.profName = inputProfName.text
+                                var rs = tx.executeSql('SELECT COUNT(*) as count FROM Profiles');
+                                profCount = rs.rows.item(0).count
+
+
                             }
                         )
                     }
                     anchors.fill: parent
                     onPressed: parent.color = "lightgrey"
                     onReleased: {
+                        cont.visible = false;
                         parent.color = "black"
                         createProf(inputProfName.text, 1);
                         createNewProf.visible = false
                         profWindow.visible = false;
+                        profWindow.focus = false;
+                        mainMenu.focus = true;
                         mainMenu.visible = true;
                     }
                 }
             }
         }
-
+        Keys.onReleased: {
+                if (event.key === Qt.Key_Back) {
+                     if(profWindow.visible){
+                         cont.visible = true;
+                         mainMenu.visible = true;
+                         profWindow.visible = false;
+                         mainMenu.focus = true;
+                         profWindow.focus = false;
+                     }
+                     else
+                         main.close();
+                     event.accepted = true
+                }
+        }
     }
     Rectangle{
         id: mainMenu
         anchors.fill: parent
-        color: "black"
+        color: main.bgnColorSecond
         visible: false
         Column{
             anchors.centerIn: parent
             spacing: parent.height/50
+            Text{
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: chLevel
+                text: "<b>LEVEL</b>"
+                color: main.fontColorSecond
+            }
+            Row{
+//                width: playingF.lay*3
+                spacing: 2
+                Rectangle{
+                    width:playingF.lay
+                    height: width
+                    color: "skyblue"
+                    MouseArea{
+                        anchors.fill: parent
+                        onClicked: {
+                            if(mainG.level > 1)
+                            {
+                                mainG.level--;
+                                Log.level = mainG.level;
+                            }
+                        }
+                    }
+                }
+                Rectangle{
+                    id: chLevel
+                    width: playingF.lay
+                    height: width
+                    color: mainMenu.color
+                    Text
+                    {
+                        anchors.centerIn: parent
+                        font.pixelSize: playingF.lay
+                        text: mainG.level
+                        color: main.fontColorSecond
+                   }
+                }
+                Rectangle{
+                    width:playingF.lay
+                    height: width
+                    color: "red"
+                    MouseArea{
+                        anchors.fill: parent
+                        onClicked: {
+                            if(mainG.level < profLevel)
+                            {
+                                mainG.level++;
+                                Log.level = mainG.level;
+                            }
+                        }
+                    }
+                }
+
+            }
             Button{
-                id: newGame
-                text: qsTr("New Game")
+                id: startGame
+                width:playingF.lay*3
+                height: playingF.lay
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: qsTr("Start")
                 onClicked: {
                     mainG.isGameOver = false;
                     mainG.collectStar = 0;
-                    mainG.level = Log.startLevel(1,mainG.stage,player, playingF.lay);
+                    Log.startLevel(mainG.level,mainG.stage,player, playingF.lay, mainG.starCount);
                     mainG.visible = true; mainMenu.visible = false;
+                    mainG.focus = true;
                 }
             }
             Button{
                 id: cont
+                anchors.horizontalCenter: parent.horizontalCenter
+                width:playingF.lay*3
+                height: playingF.lay/2
                 text: qsTr("Continue")
+                visible: false
                 onClicked: {
-                    mainG.visible = true; mainMenu.visible = false;
+                    mainG.visible = true;
+                    mainG.focus = true;
+                    mainMenu.focus = false;
+                    mainMenu.visible = false;
+
                 }
             }
             Button{
                 id: changeProfiles
+                anchors.horizontalCenter: parent.horizontalCenter
+                width:playingF.lay*3
+                height: playingF.lay/2
                 text: qsTr("Change profile")
                 onClicked: {
-                    profWindow.visible= true
-
+                    profWindow.visible = true;
+                    profWindow.focus = true;
+                    mainMenu.focus = false;
 //                    mainG.visible = true;
                     mainMenu.visible = false;
                 }
             }
             Button{
+                width:playingF.lay*3
+                height: playingF.lay/2
+                anchors.horizontalCenter: parent.horizontalCenter
                 id: exit
                 text: qsTr("Exit")
                 onClicked: main.close()
             }
         }
+
+
+        Text{
+            id: selProf
+            anchors.bottom: parent.bottom
+            color: main.fontColorSecond
+            text: main.profName
+        }
+        Text{
+            id: ver
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            color: main.fontColorSecond
+            text: "Version - 0.05"
+        }
+
     }
 
     Rectangle{
@@ -262,9 +378,6 @@ ApplicationWindow {
         property int collectStar: 0
         property bool isGameOver: false
 
-
-
-
         /********************************************
             Строка управления и счета:
          ********************************************/
@@ -273,21 +386,22 @@ ApplicationWindow {
             anchors.top: parent.top
             anchors.right: parent.right
             source: "image/refresh.png"
-            height: playingF.lay; width: height
+            height: playingF.lay;
+            width: height
             MouseArea{
                 anchors.fill: parent
                 onClicked: {
                     mainG.isGameOver = false;
                     mainG.collectStar = 0;
-                    mainG.level = Log.startLevel(mainG.level, mainG.stage, player, playingF.lay);
+                    Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.starCount);
                 }
             }
         }
         Rectangle{
             id: scoreEl
             height: parent.height/(mainG.stage+3)
-            color: "#c6d1f1"
-            border.color: "black"
+            color: main.bgnColorSecond
+            border.color: main.fontColorSecond
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: refresh.left
@@ -295,6 +409,7 @@ ApplicationWindow {
                 id: starC
                 width: height
                 height: playingF.lay/2
+                color: main.fontColorSecond
                 anchors.left: parent.left
                 anchors.bottom: parent.bottom
                 text: "<b>"+mainG.collectStar+":</b>"
@@ -305,6 +420,7 @@ ApplicationWindow {
                 id: lev
                 width: height
                 height: playingF.lay/2
+                color: main.fontColorSecond
                 anchors.left: parent.left
                 anchors.top: parent.top
                 font.pixelSize: playingF.lay/3
@@ -325,7 +441,7 @@ ApplicationWindow {
             onAccepted: {
                 mainG.isGameOver = false;
                 mainG.collectStar = 0;
-                mainG.level = Log.startLevel(mainG.level, mainG.stage, player, playingF.lay);
+                Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.starCount);
             }
 //            Component.onCompleted: visible = true
         }
@@ -351,19 +467,13 @@ ApplicationWindow {
                 anchors.top: playingF.top
 
                 height: parent.lay
-                color: "#bdf7bc"
-                border.color: "black"
+                color: main.bgnColorFirst
                 Text{
                     anchors.centerIn: parent
-                    anchors.fill: parent
-//                    anchors.verticalCenter: parent.verticalCenter
-//                    anchors.horizontalCenter: parent.horizontalCenter
-//                    width: parent.width
-//                    anchors.alignWhenCentered: parent.Center
-//                    height: parent.height
+                    color: "#bdf7bc"
                     font.pixelSize: parent.height
                     text: "<b>START</b>"
-                    opacity: 0.1
+                    opacity: 0.3
                 }
             }
 
@@ -382,8 +492,8 @@ ApplicationWindow {
                     height: parent.lay
                     x: 0
                     y: (index+1)*parent.lay
-                    color: "#ffffff"
-                    border.color: "black"
+                    color: main.bgnColorFirst
+                    border.color: main.fontColorFirst
 
                     Block{
                         id: block
@@ -391,6 +501,7 @@ ApplicationWindow {
                         y: 5
                         width: parent.width/3*(1/((index)+1))
                         speed: index+1
+                        color: main.blockColor
                         fickle: Log.getRandomBool()
 
 
@@ -437,8 +548,15 @@ ApplicationWindow {
                 anchors.right: playingF.right
                 anchors.bottom: playingF.bottom
                 height: parent.lay
-                color: "#fbc9c9"
-                border.color: "black"
+                color: main.bgnColorFirst
+                border.color: main.fontColorFirst
+                Text{
+                    anchors.centerIn: parent
+                    font.pixelSize: parent.height
+                    color: "#fbc9c9"
+                    text: "<b>FINISH</b>"
+                    opacity: 0.3
+                }
             }
 
 
@@ -459,6 +577,7 @@ ApplicationWindow {
                         function saveLevel (name, level) {
                             Log.db.transaction(
                                 function(tx) {
+
                                     tx.executeSql('UPDATE Profiles SET level = ? WHERE name = ?', [level, name]);
                                 }
                             )
@@ -467,8 +586,13 @@ ApplicationWindow {
                          onTriggered:{
                              if((player.y >= finish.y-playingF.lay)&&(mainG.collectStar === mainG.starCount)){
                                  mainG.collectStar = 0;
-                                 mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay);
-                                 saveLevel(main.profName, mainG.level);
+                                 mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay, mainG.starCount);
+                                 if(mainG.level > main.profLevel)
+                                 {
+                                    main.profLevel = mainG.level;
+                                    saveLevel(main.profName, mainG.level);
+                                 }
+
                              }
 
                          }
@@ -554,14 +678,15 @@ ApplicationWindow {
                                  }
                      }
                 }
-                /********************************************
-                    Таймер сохранения:
-                        Сохраняет указатели на звезды
-                 ********************************************/
-                Timer{
-                         interval: 1; running: true; repeat: false
-                         onTriggered: Log.saveStars(star,timerS, index)
-                }
+//                /********************************************
+//                    Таймер сохранения:
+//                        Сохраняет указатели на звезды
+//                 ********************************************/
+//                Timer{
+//                         interval: 50; running: true; repeat: true
+//                         onTriggered: Log.saveStars(star,timerS, index)
+//                }
+                Component.onCompleted: Log.saveStars(star,timerS, index)
 
             }
 
@@ -570,8 +695,11 @@ ApplicationWindow {
         Keys.onReleased: {
                 if (event.key === Qt.Key_Back) {
                      if(mainG.visible){
+                         cont.visible = true;
                          mainMenu.visible = true;
                          mainG.visible = false;
+                         mainMenu.focus = true;
+                         mainG.focus = false;
                      }
                      else
                          main.close();

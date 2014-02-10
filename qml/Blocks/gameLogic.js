@@ -61,9 +61,11 @@ function saveStars(star, timer, index, out){
 /********************************************
     Старт уровня
  ********************************************/
-function startLevel(nextL, stage, player, lay){
+function startLevel(nextL, stage, player, lay, starCount){
 
     level = nextL;
+
+
     player.x = width/2 - player.width/2;
     player.y = 0;
     player.source = "image/playerB.png"
@@ -74,7 +76,7 @@ function startLevel(nextL, stage, player, lay){
         timers[i].start();
     }
 
-    for(var j=0; j<stars.length; j++)
+    for(var j=0; j<starCount; j++)
     {
         stars[j].width = lay/2
         stars[j].y = lay*getRandomInt(2, stage+1)+(lay-stars[j].height)/2
