@@ -10,7 +10,6 @@ var oldX, oldY;
 var cof = 0.9;
 
 
-
 /********************************************
    Инициализация переменных ширины и высоты
 
@@ -24,20 +23,25 @@ function initial(w, h, l){
     Получение случайного целого числа
  ********************************************/
 // использование Math.round() даст неравномерное распределение!
-function getRandomInt(min, max)
-{
+function getRandomInt(min, max){
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
 /********************************************
     Получение случайной булевой переменной
  ********************************************/
-function getRandomBool()
-{
+function getRandomBool(){
     if(getRandomInt(1,10)>5)
         return true;
     else
         return false;
 }
+
+
+
+//function getStarPos(){
+//    return level;
+//}
 
 /********************************************
     Сохранение указателей на блоки
@@ -52,7 +56,7 @@ function saveBlocks(block, timer, out){
     Сохранение указателей на звезды
  ********************************************/
 
-function saveStars(star, timer, index, out){
+function saveStars(star, timer, index){
     stars[index] = star;
     timersS[index] = timer;
 
@@ -79,8 +83,9 @@ function startLevel(nextL, stage, player, lay, starCount){
     for(var j=0; j<starCount; j++)
     {
         stars[j].width = lay/2
-        stars[j].y = lay*getRandomInt(2, stage+1)+(lay-stars[j].height)/2
+//        stars[j].y = lay*getRandomInt(2, stage+1)+(lay-stars[j].height)/2
         stars[j].x = getRandomInt(0, width-stars[j].width);
+        stars[j].visible = true;
         timersS[j].start();
     }
 
@@ -232,8 +237,9 @@ function findStar(player, star, lay){
        (player.leftX <= star.rightX)&&(player.leftX >= star.leftX) ||
        (player.rightX <= star.rightX)&&(player.rightX >= star.leftX) )
     {
-        star.x = lay/3+20;
-        star.y = lay/2+(lay/2 - star.height)/2;
+        star.visible = false;
+//        star.x = lay/3+20;
+//        star.y = lay/2+(lay/2 - star.height)/2;
         return true;
     }
     return false;

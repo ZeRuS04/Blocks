@@ -8,8 +8,8 @@ ApplicationWindow {
     title: qsTr("Move you body")
     id: main
     contentOrientation: "PortraitOrientation"
-    width: 540
-    height: 700
+//    width: 540
+//    height: 700
     property int profCount: 0
     property string profName: ""
     property int profLevel: 1
@@ -243,7 +243,7 @@ ApplicationWindow {
             spacing: parent.height/50
             Text{
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: chLevel
+//                anchors.bottom: chLevel
                 text: "<b>LEVEL</b>"
                 color: main.fontColorSecond
             }
@@ -374,7 +374,7 @@ ApplicationWindow {
          ********************************************/
         property int level: 1
         property int stage: 4
-        property int starCount: level*2
+        property int starCount: 0/*/*Log.level*2level*2*/
         property int collectStar: 0
         property bool isGameOver: false
 
@@ -468,6 +468,8 @@ ApplicationWindow {
 
                 height: parent.lay
                 color: main.bgnColorFirst
+                border.color: main.fontColorFirst
+                border.width: 1
                 Text{
                     anchors.centerIn: parent
                     color: "#bdf7bc"
@@ -483,8 +485,7 @@ ApplicationWindow {
             Repeater{
                 id: blocks
                 model: mainG.stage
-                Rectangle
-                {
+                Rectangle{
                     opacity: 1
                     id:blockF
                     anchors.left: playingF.left
@@ -494,7 +495,7 @@ ApplicationWindow {
                     y: (index+1)*parent.lay
                     color: main.bgnColorFirst
                     border.color: main.fontColorFirst
-
+                    property int starStg: index
                     Block{
                         id: block
                         x: Log.getRandomInt(0, parent.width-width)
@@ -524,20 +525,71 @@ ApplicationWindow {
                                      }
                                  }
                              }
+
+                        Component.onCompleted: Log.saveBlocks(block, timer)
                     }
+
 
                     /********************************************
-                        Таймер сохранения:
-                            Сохраняет указатели на блоки
+                        Звезды:
+                            Распределение положения звезд
+                            Проверка на столкновения
+                            Анимация
                      ********************************************/
-                    Timer{
-                             interval: 1; running: true; repeat: false
-                             onTriggered: Log.saveBlocks(block, timer)
+                    Repeater{
+                        function strC()
+                        {
+                            return 4;
+                        }
+
+                        model: strC()
+
+                        Star{
+                            id: star
+                            width: playingF.lay/2
+                            height: width
+                            y: /*playingF.lay*Log.getRandomInt(2, mainG.stage+1)+*/(playingF.lay-height)/2
+                            x: Log.getRandomInt(0, playingF.width-width)
+
+                            Behavior on width {
+                                    NumberAnimation { duration: 700 }
+                                }
+                            Behavior on x {
+                                    NumberAnimation { duration: 700 }
+                                }
+                            Behavior on y {
+                                    NumberAnimation { duration: 700 }
+                                }
+
+                            /********************************************
+                                Таймер звезд:
+                                    Прверяет на столкновений звезды и
+                                                                   игрока
+                             ********************************************/
+                            Timer{
+                                     id:timerS
+                                     interval: 5; running: true; repeat: true
+                                     onTriggered: {
+                                         if((Math.abs(player.y+playingF.lay-star.y) < playingF.lay/2)&&  //проверка на положение по Y игрока и звезды
+                                                                               star.y > playingF.lay*2)       //проверка на то что звезда уже переместилась на игровое поле
+                                             if(Log.findStar(player, star, playingF.lay)){
+                                                 mainG.collectStar++;
+                                                 stop();
+                                             }
+                                 }
+                            }
+
+                            Component.onCompleted: {
+                                 Log.saveStars(star,timerS, mainG.starCount)
+                                 mainG.starCount++;
+                            }
+                        }
                     }
+
                 }
 
-
             }
+
 
             /********************************************
                 Финиш:
@@ -636,77 +688,22 @@ ApplicationWindow {
 
         }
 
-        /********************************************
-            Звезды:
-                Распределение положения звезд
-                Проверка на столкновения
-                Анимация
-         ********************************************/
-        Repeater{
-            model: mainG.starCount
-            Star{
-                id: star
-                width: playingF.lay/2
-                height: width
-                y: playingF.lay*Log.getRandomInt(2, mainG.stage+1)+(playingF.lay-height)/2
-                x: Log.getRandomInt(0, playingF.width-width)
-
-                Behavior on width {
-                        NumberAnimation { duration: 700 }
+            Keys.onReleased: {
+                    if (event.key === Qt.Key_Back) {
+                         if(mainG.visible){
+                             cont.visible = true;
+                             mainMenu.visible = true;
+                             mainG.visible = false;
+                             mainMenu.focus = true;
+                             mainG.focus = false;
+                         }
+                         else
+                             main.close();
+                         event.accepted = true
                     }
-                Behavior on x {
-                        NumberAnimation { duration: 700 }
-                    }
-                Behavior on y {
-                        NumberAnimation { duration: 700 }
-                    }
-
-                /********************************************
-                    Таймер звезд:
-                        Прверяет на столкновений звезды и
-                                                       игрока
-                 ********************************************/
-                Timer{
-                         id:timerS
-                         interval: 5; running: true; repeat: true
-                         onTriggered: {
-                             if((Math.abs(player.y+playingF.lay-star.y) < playingF.lay/2)&&  //проверка на положение по Y игрока и звезды
-                                                                   star.y > playingF.lay*2)       //проверка на то что звезда уже переместилась на игровое поле
-                                 if(Log.findStar(player, star, playingF.lay)){
-                                     mainG.collectStar++;
-                                     stop();
-                                 }
-                     }
-                }
-//                /********************************************
-//                    Таймер сохранения:
-//                        Сохраняет указатели на звезды
-//                 ********************************************/
-//                Timer{
-//                         interval: 50; running: true; repeat: true
-//                         onTriggered: Log.saveStars(star,timerS, index)
-//                }
-                Component.onCompleted: Log.saveStars(star,timerS, index)
-
             }
-
+//            Component.onCompleted: Log.initial(playingF.width, playingF.height, mainG.level)
         }
-        focus: true
-        Keys.onReleased: {
-                if (event.key === Qt.Key_Back) {
-                     if(mainG.visible){
-                         cont.visible = true;
-                         mainMenu.visible = true;
-                         mainG.visible = false;
-                         mainMenu.focus = true;
-                         mainG.focus = false;
-                     }
-                     else
-                         main.close();
-                     event.accepted = true
-                }
-        }
-    }
-
 
 }
+
