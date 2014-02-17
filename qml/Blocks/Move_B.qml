@@ -8,8 +8,8 @@ ApplicationWindow {
     title: qsTr("Move you body")
     id: main
     contentOrientation: "PortraitOrientation"
-//    width: 540
-//    height: 700
+    width: 540
+    height: 700
     property int profCount: 0
     property string profName: ""
     property int profLevel: 1
@@ -537,12 +537,35 @@ ApplicationWindow {
                             Анимация
                      ********************************************/
                     Repeater{
-                        function strC()
+                        function strC(stg, l, stageCount)
                         {
-                            return 4;
+                            var mass = [];
+                            for(var i = 0; i < stageCount; i++)
+                            {
+
+                                if(i+1 === stageCount)
+                                {
+                                    mass.push(1);
+                                    break;
+                                }
+                                mass.push(0);
+                            }
+                            for(var k = 1; k < l; k++)
+                            {
+                                for(var j = 0; j < stageCount; j++)
+                                {
+                                    if(j+1===stageCount)
+                                        mass[j]+=1;
+                                    if(mass[j]+1 < mass[j+1])
+                                        mass[j]+=1;
+
+                                }
+                            }
+
+                            return mass[stg];
                         }
 
-                        model: strC()
+                        model: strC(blockF.starStg, mainG.level%10, mainG.stage)
 
                         Star{
                             id: star
@@ -700,6 +723,17 @@ ApplicationWindow {
                          else
                              main.close();
                          event.accepted = true
+                    }
+            }
+            Keys.onPressed: {
+                    if (event.key === Qt.Key_Right) {
+                        mainG.collectStar = 0;
+                        mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay, mainG.starCount);
+                        if(mainG.level > main.profLevel)
+                        {
+                           main.profLevel = mainG.level;
+                           saveLevel(main.profName, mainG.level);
+                        }
                     }
             }
 //            Component.onCompleted: Log.initial(playingF.width, playingF.height, mainG.level)
