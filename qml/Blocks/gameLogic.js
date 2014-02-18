@@ -2,6 +2,7 @@ var db;
 var width, height, level;
 var blocks = [];
 //var chgDir = [];
+var starCnt =[];
 var timers = [];
 var stars = [];
 var timersS= [];
@@ -39,9 +40,61 @@ function getRandomBool(){
 
 
 
-//function getStarPos(){
-//    return level;
-//}
+function setStarPos(){
+
+    var strCnt4 = [];
+
+    strCnt4[0] = [0, 0, 0, 1];
+    strCnt4[1] = [0, 0, 0, 2];
+    strCnt4[2] = [0, 0, 1, 2];
+    strCnt4[3] = [0, 0, 1, 3];
+    strCnt4[4] = [0, 0, 2, 3];
+    strCnt4[5] = [0, 1, 2, 3];
+    strCnt4[6] = [0, 1, 2, 4];
+    strCnt4[7] = [0, 1, 3, 4];
+    strCnt4[8] = [0, 2, 3, 4];
+    strCnt4[9] = [1, 2, 3, 4];
+    starCnt[4] = strCnt4;
+
+    var strCnt5 = [];
+    strCnt5[0] = [0, 0, 0, 0, 1]
+    strCnt5[1] = [0, 0, 0, 0, 2]
+    strCnt5[2] = [0, 0, 0, 1, 2]
+    strCnt5[3] = [0, 0, 0, 1, 3]
+    strCnt5[4] = [0, 0, 0, 2, 3]
+    strCnt5[5] = [0, 0, 1, 2, 3]
+    strCnt5[6] = [0, 0, 1, 2, 4]
+    strCnt5[7] = [0, 0, 1, 3, 4]
+    strCnt5[8] = [0, 0, 2, 3, 4]
+    strCnt5[9] = [1, 1, 2, 3, 4]
+    starCnt[5] = strCnt5;
+
+    var strCnt6 = [];
+    strCnt6[0] = [0, 0, 0, 0, 0, 1]
+    strCnt6[1] = [0, 0, 0, 0, 0, 2]
+    strCnt6[2] = [0, 0, 0, 0, 1, 2]
+    strCnt6[3] = [0, 0, 0, 0, 1, 3]
+    strCnt6[4] = [0, 0, 0, 0, 2, 3]
+    strCnt6[5] = [0, 0, 1, 1, 2, 3]
+    strCnt6[6] = [0, 0, 1, 1, 2, 4]
+    strCnt6[7] = [0, 0, 1, 1, 3, 4]
+    strCnt6[8] = [0, 0, 2, 2, 3, 4]
+    strCnt6[9] = [1, 1, 2, 2, 3, 4]
+    starCnt[6] = strCnt6;
+
+    var strCnt7 = [];
+    strCnt7[0] = [0, 0, 0, 0, 0, 0, 1]
+    strCnt7[1] = [0, 0, 0, 0, 0, 0, 2]
+    strCnt7[2] = [0, 0, 0, 0, 1, 1, 2]
+    strCnt7[3] = [0, 0, 0, 0, 1, 1, 3]
+    strCnt7[4] = [0, 0, 0, 0, 2, 2, 3]
+    strCnt7[5] = [0, 0, 1, 1, 2, 2, 3]
+    strCnt7[6] = [0, 0, 1, 1, 2, 2, 4]
+    strCnt7[7] = [0, 0, 1, 1, 3, 3, 4]
+    strCnt7[8] = [0, 0, 2, 2, 3, 3, 4]
+    strCnt7[9] = [1, 1, 2, 2, 3, 3, 4]
+    starCnt[7] = strCnt7;
+}
 
 /********************************************
     Сохранение указателей на блоки
@@ -84,7 +137,7 @@ function startLevel(nextL, stage, player, lay, starCount){
     {
         stars[j].width = lay/2
 //        stars[j].y = lay*getRandomInt(2, stage+1)+(lay-stars[j].height)/2
-        stars[j].x = getRandomInt(0, width-stars[j].width);
+//        stars[j].x = getRandomInt(0, width-stars[j].width);
         stars[j].visible = true;
         timersS[j].start();
     }

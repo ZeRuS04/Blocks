@@ -1,3 +1,4 @@
+
 import QtQuick 2.1
 import QtQuick.Controls 1.0
 import QtQuick.Dialogs 1.1
@@ -304,7 +305,6 @@ ApplicationWindow {
                 onClicked: {
                     mainG.isGameOver = false;
                     mainG.collectStar = 0;
-                    mainG.starCount = 0;
                     Log.startLevel(mainG.level,mainG.stage,player, playingF.lay, mainG.starCount);
                     mainG.visible = true; mainMenu.visible = false;
                     mainG.focus = true;
@@ -375,7 +375,7 @@ ApplicationWindow {
          ********************************************/
         property int level: 1
         property int stage: 4+((level-1)/10)
-        property int starCount: 0/*/*Log.level*2level*2*/
+        property int starCount: 0
         property int collectStar: 0
         property bool isGameOver: false
 
@@ -493,9 +493,9 @@ ApplicationWindow {
                     id:blockF
                     anchors.left: playingF.left
                     anchors.right: playingF.right
-                    height: parent.lay
+                    height: playingF.lay
                     x: 0
-                    y: (index+1)*parent.lay
+                    y: (index+1)*playingF.lay
                     color: main.bgnColorFirst
                     border.color: main.fontColorFirst
                     property int starStg: index
@@ -544,33 +544,10 @@ ApplicationWindow {
                         {
                             if(l === 0 )
                                 l=10;
-                            var mass = [];
-                            for(var i = 0; i < stageCount; i++)
-                            {
+                            Log.setStarPos()
+                            var c = Log.starCnt[stageCount][l-1][stg];
+                            return c;
 
-                                if(i+1 === stageCount)
-                                {
-                                    mass.push(1);
-                                    break;
-                                }
-                                mass.push(0);
-                            }
-                            for(var k = 1; k < l; k++)
-                            {
-                                for(var j = 0; j < stageCount; j++)
-                                {
-                                    if(j+1===stageCount)
-                                        mass[j]+=1;
-                                    if(mass[j]+1 < mass[j+1])
-                                    {
-                                        mass[j]+=1;
-                                        break;
-                                    }
-
-                                }
-                            }
-
-                            return mass[stg];
                         }
 
                         model: strC(blockF.starStg, mainG.level%10, mainG.stage)
@@ -579,8 +556,26 @@ ApplicationWindow {
                             id: star
                             width: playingF.lay/2
                             height: width
-                            y: /*playingF.lay*Log.getRandomInt(2, mainG.stage+1)+*/(playingF.lay-height)/2
-                            x: Log.getRandomInt(0, playingF.width-width)
+                            y: (playingF.lay-height)/2
+                            function strX(stg, l, stageCount, index, w, sW){
+                                if(l === 0 )
+                                    l=10;
+
+                                var c = Log.starCnt[stageCount][l-1][stg];
+                                var i = index;
+                                var ls = ((w/c)*(index));
+                                var rs = ((w/c)*(index+1));
+
+                                if(index === 0)
+                                    return Log.getRandomInt(0, rs-sW)
+                                else
+                                    if(index+1 === c)
+                                           return Log.getRandomInt(ls, w-sW)
+                                    else
+                                        return Log.getRandomInt(ls, rs-sW)
+
+                            }
+                            x: strX(blockF.starStg, mainG.level%10, mainG.stage, index, blockF.width, width)
 
                             Behavior on width {
                                     NumberAnimation { duration: 700 }
@@ -601,9 +596,8 @@ ApplicationWindow {
                                      id:timerS
                                      interval: 5; running: true; repeat: true
                                      onTriggered: {
-                                         if((Math.abs(player.y+playingF.lay-star.y) < playingF.lay/2)&&  //проверка на положение по Y игрока и звезды
-                                                                               star.y > playingF.lay*2)       //проверка на то что звезда уже переместилась на игровое поле
-                                             if(Log.findStar(player, star, playingF.lay)){
+                                         if(Math.abs(player.y-blockF.y) < playingF.lay/2)  //проверка на положение по Y игрока и звезды
+                                           if(Log.findStar(player, star, playingF.lay)){
                                                  mainG.collectStar++;
                                                  stop();
                                              }
@@ -611,7 +605,7 @@ ApplicationWindow {
                             }
 
                             Component.onCompleted: {
-                                 Log.saveStars(star,timerS, mainG.starCount-1)
+                                 Log.saveStars(star,timerS, mainG.starCount)
                                  mainG.starCount++;
                             }
                         }
@@ -669,7 +663,7 @@ ApplicationWindow {
                          onTriggered:{
                              if((player.y >= finish.y-playingF.lay)&&(mainG.collectStar === mainG.starCount)){
                                  mainG.collectStar = 0;
-                                 mainG.starCount = 0;
+//                                 mainG.starCount = 0;
                                  mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay, mainG.starCount);
                                  if(mainG.level > main.profLevel)
                                  {
