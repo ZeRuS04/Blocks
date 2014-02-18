@@ -47,9 +47,9 @@ function getRandomBool(){
     Сохранение указателей на блоки
  ********************************************/
 
-function saveBlocks(block, timer, out){
-    blocks.push(block);
-    timers.push(timer)
+function saveBlocks(block, timer, index){
+    blocks[index] = block;
+    timers[index] = timer;
 }
 
 /********************************************
@@ -74,7 +74,7 @@ function startLevel(nextL, stage, player, lay, starCount){
     player.y = 0;
     player.source = "image/playerB.png"
 
-    for(var i=0; i<blocks.length; i++)
+    for(var i=0; i<stage; i++)
     {
         blocks[i].x = getRandomInt(0, width-blocks[i].width);
         timers[i].start();

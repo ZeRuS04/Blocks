@@ -304,6 +304,7 @@ ApplicationWindow {
                 onClicked: {
                     mainG.isGameOver = false;
                     mainG.collectStar = 0;
+                    mainG.starCount = 0;
                     Log.startLevel(mainG.level,mainG.stage,player, playingF.lay, mainG.starCount);
                     mainG.visible = true; mainMenu.visible = false;
                     mainG.focus = true;
@@ -373,7 +374,7 @@ ApplicationWindow {
             Основные переменные:
          ********************************************/
         property int level: 1
-        property int stage: 4
+        property int stage: 4+((level-1)/10)
         property int starCount: 0/*/*Log.level*2level*2*/
         property int collectStar: 0
         property bool isGameOver: false
@@ -393,6 +394,7 @@ ApplicationWindow {
                 onClicked: {
                     mainG.isGameOver = false;
                     mainG.collectStar = 0;
+                    mainG.starCount = 0;
                     Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.starCount);
                 }
             }
@@ -440,6 +442,7 @@ ApplicationWindow {
             text: "Sorry, but you lose. Level will be restarted."
             onAccepted: {
                 mainG.isGameOver = false;
+                mainG.starCount = 0;
                 mainG.collectStar = 0;
                 Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.starCount);
             }
@@ -526,7 +529,7 @@ ApplicationWindow {
                                  }
                              }
 
-                        Component.onCompleted: Log.saveBlocks(block, timer)
+                        Component.onCompleted: Log.saveBlocks(block, timer, index)
                     }
 
 
@@ -539,6 +542,8 @@ ApplicationWindow {
                     Repeater{
                         function strC(stg, l, stageCount)
                         {
+                            if(l === 0 )
+                                l=10;
                             var mass = [];
                             for(var i = 0; i < stageCount; i++)
                             {
@@ -557,7 +562,10 @@ ApplicationWindow {
                                     if(j+1===stageCount)
                                         mass[j]+=1;
                                     if(mass[j]+1 < mass[j+1])
+                                    {
                                         mass[j]+=1;
+                                        break;
+                                    }
 
                                 }
                             }
@@ -603,7 +611,7 @@ ApplicationWindow {
                             }
 
                             Component.onCompleted: {
-                                 Log.saveStars(star,timerS, mainG.starCount)
+                                 Log.saveStars(star,timerS, mainG.starCount-1)
                                  mainG.starCount++;
                             }
                         }
@@ -661,6 +669,7 @@ ApplicationWindow {
                          onTriggered:{
                              if((player.y >= finish.y-playingF.lay)&&(mainG.collectStar === mainG.starCount)){
                                  mainG.collectStar = 0;
+                                 mainG.starCount = 0;
                                  mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay, mainG.starCount);
                                  if(mainG.level > main.profLevel)
                                  {
@@ -726,13 +735,14 @@ ApplicationWindow {
                     }
             }
             Keys.onPressed: {
-                    if (event.key === Qt.Key_Right) {
+                    if (event.key === Qt.Key_VolumeUp) {
                         mainG.collectStar = 0;
+                        mainG.starCount = 0;
                         mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay, mainG.starCount);
                         if(mainG.level > main.profLevel)
                         {
                            main.profLevel = mainG.level;
-                           saveLevel(main.profName, mainG.level);
+//                           saveLevel(main.profName, mainG.level);
                         }
                     }
             }
