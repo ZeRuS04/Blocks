@@ -251,10 +251,10 @@ ApplicationWindow {
             Row{
 //                width: playingF.lay*3
                 spacing: 2
-                Rectangle{
+                Image{
                     width:playingF.lay
                     height: width
-                    color: "skyblue"
+                    source: "image/minus.png"
                     MouseArea{
                         anchors.fill: parent
                         onClicked: {
@@ -279,10 +279,10 @@ ApplicationWindow {
                         color: main.fontColorSecond
                    }
                 }
-                Rectangle{
+                Image{
                     width:playingF.lay
                     height: width
-                    color: "red"
+                    source: "image/plus.png"
                     MouseArea{
                         anchors.fill: parent
                         onClicked: {
@@ -305,7 +305,8 @@ ApplicationWindow {
                 onClicked: {
                     mainG.isGameOver = false;
                     mainG.collectStar = 0;
-                    Log.startLevel(mainG.level,mainG.stage,player, playingF.lay, mainG.starCount);
+                    Log.startLevel(mainG.level,mainG.stage,player, playingF.lay, mainG.level);
+                    mainG.starCount = Log.starC[mainG.level-1];
                     mainG.visible = true; mainMenu.visible = false;
                     mainG.focus = true;
                 }
@@ -361,7 +362,7 @@ ApplicationWindow {
             anchors.bottom: parent.bottom
             anchors.right: parent.right
             color: main.fontColorSecond
-            text: "Version - 0.05"
+            text: "Version - 0.24"
         }
 
     }
@@ -375,7 +376,7 @@ ApplicationWindow {
          ********************************************/
         property int level: 1
         property int stage: 4+((level-1)/10)
-        property int starCount: 0
+        property int starCount: Log.starC[level-1]
         property int collectStar: 0
         property bool isGameOver: false
 
@@ -394,8 +395,8 @@ ApplicationWindow {
                 onClicked: {
                     mainG.isGameOver = false;
                     mainG.collectStar = 0;
-                    mainG.starCount = 0;
-                    Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.starCount);
+                    Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.level);
+                    mainG.starCount = Log.starC[mainG.level-1];
                 }
             }
         }
@@ -414,8 +415,17 @@ ApplicationWindow {
                 color: main.fontColorSecond
                 anchors.left: parent.left
                 anchors.bottom: parent.bottom
-                text: "<b>"+mainG.collectStar+":</b>"
+                verticalAlignment: Text.AlignVCenter
+                horizontalAlignment: Text.AlignHCenter
+                text: "<b>"+(mainG.starCount-mainG.collectStar)+":</b>"
                 font.pixelSize: playingF.lay/3
+            }
+            Image{
+                source: "image/star-black.png"
+                height: playingF.lay/2
+                width: height
+                anchors.verticalCenter: starC.verticalCenter
+                anchors.left: starC.right
             }
 
             Text{
@@ -437,17 +447,18 @@ ApplicationWindow {
          ********************************************/
         MessageDialog {
             id: dialog
-//            visible: false
             title: "Game Over"
             text: "Sorry, but you lose. Level will be restarted."
             onAccepted: {
                 mainG.isGameOver = false;
-                mainG.starCount = 0;
                 mainG.collectStar = 0;
-                Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.starCount);
+                Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.level);
+                mainG.starCount = Log.starC[mainG.level-1];
             }
-//            Component.onCompleted: visible = true
         }
+
+
+
         /********************************************
             Игровое поле:
          ********************************************/
@@ -605,8 +616,7 @@ ApplicationWindow {
                             }
 
                             Component.onCompleted: {
-                                 Log.saveStars(star,timerS, mainG.starCount)
-                                 mainG.starCount++;
+                                Log.saveStars(star,timerS, index, blockF.starStg)
                             }
                         }
                     }
@@ -663,8 +673,9 @@ ApplicationWindow {
                          onTriggered:{
                              if((player.y >= finish.y-playingF.lay)&&(mainG.collectStar === mainG.starCount)){
                                  mainG.collectStar = 0;
-//                                 mainG.starCount = 0;
-                                 mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay, mainG.starCount);
+                                 mainG.level++;
+                                 Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.level);
+                                 mainG.starCount = Log.starC[mainG.level-1];
                                  if(mainG.level > main.profLevel)
                                  {
                                     main.profLevel = mainG.level;
@@ -731,8 +742,9 @@ ApplicationWindow {
             Keys.onPressed: {
                     if (event.key === Qt.Key_VolumeUp) {
                         mainG.collectStar = 0;
-                        mainG.starCount = 0;
-                        mainG.level = Log.startLevel(mainG.level+1, mainG.stage, player, playingF.lay, mainG.starCount);
+                        mainG.level++;
+                        Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.level);
+                        mainG.starCount = Log.starC[mainG.level-1];
                         if(mainG.level > main.profLevel)
                         {
                            main.profLevel = mainG.level;

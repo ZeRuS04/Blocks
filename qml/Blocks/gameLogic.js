@@ -1,6 +1,10 @@
 var db;
 var width, height, level;
 var blocks = [];
+var starC = [1,2,3,4,5,6,7,8,9,10,
+             1,2,3,4,5,6,7,8,9,11,
+             1,2,3,4,5,7,8,9,11,13,
+             1,2,4,5,7,9,10,12,14,16]
 //var chgDir = [];
 var starCnt =[];
 var timers = [];
@@ -9,6 +13,7 @@ var timersS= [];
 var startX, startY;
 var oldX, oldY;
 var cof = 0.9;
+var fl=false;
 
 
 /********************************************
@@ -19,6 +24,19 @@ function initial(w, h, l){
     width=w;
     height=h;
     level=l;
+    if(!fl){
+        var ins = []
+        var inT = []
+        for(var y = 0; y < 7; y++)
+        {
+            timersS[y] = inT;
+            stars[y] = ins;
+        }
+        fl = true;
+    }
+
+
+
 }
 /********************************************
     Получение случайного целого числа
@@ -37,7 +55,6 @@ function getRandomBool(){
     else
         return false;
 }
-
 
 
 function setStarPos(){
@@ -109,20 +126,35 @@ function saveBlocks(block, timer, index){
     Сохранение указателей на звезды
  ********************************************/
 
-function saveStars(star, timer, index){
-    stars[index] = star;
-    timersS[index] = timer;
+function saveStars(star, timer, index, stg){
 
+    if(!fl){
+        for(var y = 0; y < 7; y++)
+        {
+            timersS[y] = [];
+            stars[y] = [];
+        }
+        fl = true;
+    }
+    var b = stars[stg];
+    var bt = timersS[stg];
+
+    b[index]=star
+    bt[index]=timer
+
+    stars[stg] =b;
+    timersS[stg] =bt;
 }
 
 /********************************************
     Старт уровня
  ********************************************/
-function startLevel(nextL, stage, player, lay, starCount){
+function startLevel(nextL, stage, player, lay, level){
 
     level = nextL;
-
-
+    var l = nextL%10;
+    if(l === 0)
+         l = 10;
     player.x = width/2 - player.width/2;
     player.y = 0;
     player.source = "image/playerB.png"
@@ -133,16 +165,15 @@ function startLevel(nextL, stage, player, lay, starCount){
         timers[i].start();
     }
 
-    for(var j=0; j<starCount; j++)
+    for(var k=0; k<stage; k++)
     {
-        stars[j].width = lay/2
-//        stars[j].y = lay*getRandomInt(2, stage+1)+(lay-stars[j].height)/2
-//        stars[j].x = getRandomInt(0, width-stars[j].width);
-        stars[j].visible = true;
-        timersS[j].start();
+        for(var j=0; j<starCnt[stage][l-1][k]; j++)
+        {
+            stars[k][j].width = lay/2
+            stars[k][j].visible = true;
+            timersS[k][j].start();
+        }
     }
-
-    return nextL;
 
 }
 
@@ -273,7 +304,7 @@ function isCrashed(player, lay, normY)
 function isCrash(player, block, timer, dialog){
     if((player.rightX >= block.rightX)&&(player.leftX <= block.leftX)||
        (player.rightX >= block.leftX)&&(player.rightX <= block.rightX)||
-       (player.leftX <= block.rightX)&&(player.leftX >= block.leftX)    )
+       (player.leftX <= block.rightX)&&(player.leftX >= block.leftX))
     {
         dialog.open();
         return true;
