@@ -505,7 +505,7 @@ ApplicationWindow {
                     anchors.left: playingF.left
                     anchors.right: playingF.right
                     height: playingF.lay
-                    x: 0
+                    x: -1
                     y: (index+1)*playingF.lay
                     color: main.bgnColorFirst
                     border.color: main.fontColorFirst
@@ -515,9 +515,13 @@ ApplicationWindow {
                         x: Log.getRandomInt(0, parent.width-width)
                         y: 5
                         width: parent.width/3*(1/((index)+1))
-                        speed: index+1
+                        speed: Math.log((index+1)*mainG.level*8)
                         color: main.blockColor
                         fickle: Log.getRandomBool()
+
+                        Behavior on x {
+                                NumberAnimation { duration: block.width*30/mainG.level }
+                            }
 
 
                         /********************************************
@@ -527,20 +531,47 @@ ApplicationWindow {
                          ********************************************/
                         Timer {
                                 id:timer
-                                 interval: 5; running: true; repeat: true
+                                 interval: 10; running: true; repeat: true
                                  onTriggered: {
-                                     if(mainG.isGameOver)
+                                     if(mainG.isGameOver){
                                          stop()
+                                         block.x = block.x;
+                                     }
                                      else{
-                                         if(Math.abs(player.y-block.parent.y)<10)
-                                             mainG.isGameOver = Log.isCrash(player, block, timer, dialog);
-                                         if(player.y < playingF.lay)
-                                            Log.move(block, 0)
+                                         if(block.x<=0)
+                                         {
+                                             block.direction = true;
+                                             block.x = playingF.width-block.width+1;
+                                         }
+                                         else
+                                             if(block.x>=playingF.width-block.width)
+                                             {
+                                                 block.direction = false;
+                                                 block.x = -1;
+                                             }
+
+                                     if(Math.abs(player.y-block.parent.y)<10)
+                                         mainG.isGameOver = Log.isCrash(player, block, timer, dialog);
+
+                                     if(player.y < playingF.lay)
+                                     {
+                                         if(block.direction)
+                                         {
+                                             block.x = playingF.width+1-block.width;
+                                         }
+                                         else{
+                                             block.x = -1;
+                                         }
+                                     }
+                                     else
+                                         block.x = block.x;
                                      }
                                  }
                              }
-
-                        Component.onCompleted: Log.saveBlocks(block, timer, index)
+                        Component.onCompleted: {
+                            block.x = -1;
+                            Log.saveBlocks(block, timer, index)
+                        }
                     }
 
 
@@ -674,6 +705,7 @@ ApplicationWindow {
                              if((player.y >= finish.y-playingF.lay)&&(mainG.collectStar === mainG.starCount)){
                                  mainG.collectStar = 0;
                                  mainG.level++;
+                                 Log.level = mainG.level;
                                  Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.level);
                                  mainG.starCount = Log.starC[mainG.level-1];
                                  if(mainG.level > main.profLevel)
@@ -743,6 +775,7 @@ ApplicationWindow {
                     if (event.key === Qt.Key_VolumeUp) {
                         mainG.collectStar = 0;
                         mainG.level++;
+                        Log.level = mainG.level;
                         Log.startLevel(mainG.level, mainG.stage, player, playingF.lay, mainG.level);
                         mainG.starCount = Log.starC[mainG.level-1];
                         if(mainG.level > main.profLevel)

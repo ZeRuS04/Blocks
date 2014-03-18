@@ -161,7 +161,11 @@ function startLevel(nextL, stage, player, lay, level){
 
     for(var i=0; i<stage; i++)
     {
-        blocks[i].x = getRandomInt(0, width-blocks[i].width);
+//        blocks[i].x = getRandomInt(0, width-blocks[i].width);
+        if(!blocks[i].direction)
+            blocks[i].x = -1;
+        else
+            blocks[i].x = width+1-blocks[i].width
         timers[i].start();
     }
 
@@ -188,19 +192,19 @@ function changeDir(block){
 }
 
 /********************************************
-    Перемещение блока(блок*, уровеньИгры,
-
-                            правыйКрайПоля)
+    Перемещение блока(блок*, flag)
  ********************************************/
 function move(block, dirChanged) {
-    if(((block.rightX) > width)||(block.leftX < 0))
+    if(((block.rightX) > width)||(block.leftX < 0)){
         if(!dirChanged)
+        {
             changeDir(block);
-
-    if(block.direction)
-        block.x = block.x+block.speed*level;
-    else
-        block.x = block.x-block.speed*level;
+        }
+        if(block.direction)
+            block.x = width+1-block.width;
+        else
+            block.x = -1;
+    }
 
 }
 
